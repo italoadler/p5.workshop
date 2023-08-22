@@ -16,7 +16,6 @@ let parallaxSpeedHill = 1;
 
 let groundX = 0;
 let parallaxSpeedGround = 8;
-let speedFlowers = parallaxSpeedGround;
 let flowers = [];
 let flowerClosedImg;
 let flowerOpenImg;
@@ -31,7 +30,7 @@ function preload() {
   }
 
   galop = loadSound('assets/sound/galop.wav');
-    blossom = loadSound('assets/sound/tone.wav');
+  blossom = loadSound('assets/sound/tone.wav');
   spritedata = loadJSON('horse.json');
   spritesheet = loadImage('horse.png');
 
@@ -92,9 +91,10 @@ function draw() {
     flower.show();
     flower.move();
 
-    if (horse.collides(flower) && !flower.opened) {
+    if (horse.collides(flower) && flower.state === 'closed') {
       blossom.play();
-      flower.opened = true;
+      flower.state = 'shattered';
+      flower.shatter();
     }
   }
 }
@@ -167,15 +167,27 @@ class Flower {
     this.x = random(width, width * 2);
     this.y = height - img.height - 65;
     this.image = img;
-    this.speed = parallaxSpeedGround;  // Speed synced with the ground
-    this.opened = false;
+    this.speed = parallaxSpeedGround;
+    this.state = 'closed';
+    this.particles = [];
   }
 
   show() {
-    if (this.opened) {
-      image(flowerOpenImg, this.x, this.y);
-    } else {
+    if (this.state === 'closed') {
       image(this.image, this.x, this.y);
+    } else if (this.state === 'opened') {
+      image(flowerOpenImg, this.x, this.y);
+    } else if (this.state === 'shattered') {
+      for (let p of this.particles) {
+        p.show();
+      }
+    }
+  }
+
+  shatter() {
+    for (let i = 0; i < 5; i++) {
+      const p = new Particle(this.x, this.y, this.image);
+      this.particles.push(p);
     }
   }
 
@@ -183,7 +195,35 @@ class Flower {
     this.x -= this.speed;
     if (this.x < -this.image.width) {
       this.x = random(width, width * 2);
-      this.opened = false;  // Reset the flower's state when it goes out of view
+      this.state = 'closed';
+      this.particles = [];
     }
+
+    for (let p of this.particles) {
+      p.update();
+    }
+  }
+}
+
+class Particle {
+  constructor(x, y, img) {
+    this.x = x;
+    this.y = y;
+    this.size = random(5, 15);
+    this.speedX = random(-2, 2);
+    this.speedY = random(-5, -1);
+    this.alpha = 255;
+    this.img = img;
+  }
+
+  update() {
+    this.x += this.speedX;
+    this.y += this.speedY;
+    this.alpha -= 5;
+  }
+
+  show() {
+    tint(255, this.alpha);
+    image(this.img, this.x, this.y, this.size, this.size);
   }
 }
