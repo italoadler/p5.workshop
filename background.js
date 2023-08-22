@@ -17,5 +17,5 @@ class Background {
         this.x = 0;
       }
     }
-  }
-  
+}
+ 
