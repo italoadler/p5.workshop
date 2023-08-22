@@ -9,9 +9,9 @@ class Horse {
       this.index = 0;
   
       // For jumping
-      this.velocity = 0;
+      this.velocity = -14 ;
       this.gravity = 0.7;
-      this.lift = -30;  // This will decide the strength of the jump
+      this.lift = -40;  // This will decide the strength of the jump
       this.jumping = false;  // To know if horse is in air
     }
   
