@@ -36,7 +36,6 @@ function preload() {
   spritedata = loadJSON("horse.json");
   spritesheet = loadImage("horse.png");
 
-
   // Preload the jump animations for the horse
   for (let i = 0; i < 7; i++) {
     let filename = `assets/sprite/horse/horse-jump-0${i}.png`;
@@ -58,7 +57,7 @@ function setup() {
     runAnimation.push(img);
   }
 
-  horse = new Horse(runAnimation, jumpAnimation, 0, 0, 0.3);
+  horse = new Horse(runAnimation, jumpAnimation, 200, height - 200, 0.3);
 
   for (let i = 0; i < 10; i++) {
     flowers.push(new Flower(flowerClosedImg));
@@ -121,66 +120,71 @@ function mousePressed() {
 }
 
 class Horse {
-    constructor(runAnimation, jumpAnimation, x, y, speed) {
-      this.runAnimation = runAnimation;
-      this.jumpAnimation = jumpAnimation;
-      this.speed = speed;
-      this.index = 0;
-      this.x = x;
-      this.y = y;
-      this.gravity = 0.5;
-      this.lift = -15;
-      this.velocity = 0;
-      this.jumping = false; // Added to check if horse is currently jumping
-    }
-  
-    show() {
-      let index = floor(this.index) % this.runAnimation.length;
-      if(this.jumping) {
-        index = floor(this.index) % this.jumpAnimation.length;
-        image(this.jumpAnimation[index], this.x, this.y);
+  constructor(runAnimation, jumpAnimation, x, y, speed) {
+    this.runAnimation = runAnimation;
+    this.jumpAnimation = jumpAnimation;
+    this.speed = speed;
+    this.jumpSpeed = this.speed / 3; // Reduzindo a velocidade da animação de pulo
+    this.index = 0;
+    this.x = x;
+    this.y = y;
+    this.gravity = 0.5;
+    this.lift = -15;
+    this.velocity = 0;
+    this.jumping = false;
+  }
+
+  show() {
+    // Determinando qual animação exibir
+    let currentAnimation = this.jumping
+      ? this.jumpAnimation
+      : this.runAnimation;
+    let index = floor(this.index) % currentAnimation.length;
+    let currentFrame = currentAnimation[index];
+
+    image(currentFrame, this.x, this.y);
+  }
+
+  animate() {
+    if (this.jumping) {
+      this.index += this.jumpSpeed; // Usando a velocidade de pulo se o cavalo estiver pulando
     } else {
-        console.log("Current index:", index);
-        console.log("Current image:", this.runAnimation[index])
-        image(this.runAnimation[index], this.x, this.y);
-      }
-    }
-  
-    animate() {
       this.index += this.speed;
-      
-    }
-  
-    jump() {
-      if (this.y == height - 200) {
-        this.velocity += this.lift;
-        this.jumping = true; // Set jumping to true when the horse jumps
-      }
-    }
-  
-    applyGravity() {
-      this.velocity += this.gravity;
-      this.y += this.velocity;
-      if (this.y > height - 200) {
-        this.y = height - 200;
-        this.velocity = 0;
-        this.jumping = false; // Reset jumping to false when the horse lands
-      }
-    }
-  
-    collides(flower) {
-      let horseWidth = this.runAnimation[0].width; // Use runAnimation here since it will have the horse's dimensions.
-      let horseHeight = this.runAnimation[0].height;
-      let flowerWidth = flower.image.width;
-      let flowerHeight = flower.image.height;
-  
-      return !(this.x + horseWidth < flower.x ||
-               this.x > flower.x + flowerWidth ||
-               this.y + horseHeight < flower.y ||
-               this.y > flower.y + flowerHeight);
     }
   }
-  
+
+  jump() {
+    if (this.y == height - 200) {
+      this.velocity += this.lift;
+      this.jumping = true;
+      this.index = 0; // Resetamos o índice para o início da animação de pulo
+    }
+  }
+
+  applyGravity() {
+    this.velocity += this.gravity;
+    this.y += this.velocity;
+    if (this.y > height - 200) {
+      this.y = height - 200;
+      this.velocity = 0;
+      this.jumping = false;
+    }
+  }
+
+  collides(flower) {
+    let horseWidth = this.runAnimation[0].width;
+    let horseHeight = this.runAnimation[0].height;
+    let flowerWidth = flower.image.width;
+    let flowerHeight = flower.image.height;
+
+    return !(
+      this.x + horseWidth < flower.x ||
+      this.x > flower.x + flowerWidth ||
+      this.y + horseHeight < flower.y ||
+      this.y > flower.y + flowerHeight
+    );
+  }
+}
 
 class Flower {
   constructor(img) {
