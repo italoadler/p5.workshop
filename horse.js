@@ -1,65 +1,113 @@
 class Horse {
-    constructor(animation, x, y, speed) {
-      this.x = x;
-      this.y = y;
-      this.yBase = y;  // Keep track of the ground level
-      this.animation = animation;
-      this.len = this.animation.length;
-      this.speed = speed;
-      this.index = 0;
-  
-      // For jumping
-      this.velocity = 0;
-      this.gravity = 0.7;
-      this.lift = -30;  // This will decide the strength of the jump
-      this.jumping = false;  // To know if horse is in air
-    }
-  
-    show() {
-      let index = floor(this.index) % this.len;
-      image(this.animation[index], this.x, this.y);
-    }
-  
-    animate() {
-      this.index += this.speed;
-      this.x += this.speed * 15;
-      
-      if (this.x > width) {
-        this.x = -this.animation[0].width;
-      }
-  
-      // Apply gravity
-      if (this.jumping) {
-        this.velocity += this.gravity;
-        this.y += this.velocity;
-  
-        // Stop the horse when it reaches the ground
-        if (this.y > this.yBase) {
-          this.y = this.yBase;
-          this.jumping = false;
-          this.velocity = 0;  // Reset velocity
-        }
-      }
-    }
-  
-    jump() {
-      if (!this.jumping) {  // Prevent double jump when already in air
-        this.velocity += this.lift;
-        this.jumping = true;
-      }
-    }
+  constructor(animation, x, y, speed) {
+    this.animation = animation;
+    this.speed = speed;
+    this.index = 0;
+    this.x = x;
+    this.y = y;
+    this.gravity = 0.8;
+    this.lift = -15;
+    this.velocity = 0;
   }
-  
-  function keyPressed() {
-    if (key == ' ' || keyCode == UP_ARROW) {  // Jump when spacebar or up arrow is pressed
-      for (let horse of horses) {  // If you have multiple horses and want all of them to jump
-        horse.jump();
-      }
-    }
-    return false;  // prevent any default behavior
-  }
-  
 
+  show() {
+    let index = floor(this.index) % this.animation.length;
+    image(this.animation[index], this.x, this.y);
+  }
+
+  animate() {
+    this.index += this.speed;
+  }
+
+  jump() {
+    if (this.y == height - 200) {
+      this.velocity += this.lift;
+    }
+  }
+
+  applyGravity() {
+    this.velocity += this.gravity;
+    this.y += this.velocity;
+    if (this.y > height - 200) {
+      this.y = height - 200;
+      this.velocity = 0;
+    }
+  }
+
+  collides(flower) {
+    let horseWidth = this.animation[0].width;
+    let horseHeight = this.animation[0].height;
+    let flowerWidth = flower.image.width;
+    let flowerHeight = flower.image.height;
+
+    return !(this.x + horseWidth < flower.x ||
+             this.x > flower.x + flowerWidth ||
+             this.y + horseHeight < flower.y ||
+             this.y > flower.y + flowerHeight);
+  }
+}
+// class Horse {
+//     constructor(animation, x, y, speed) {
+//       this.x = x;
+//       this.y = y;
+//       this.yBase = y;  // Keep track of the ground level
+//       this.animation = animation;
+//       this.len = this.animation.length;
+//       this.speed = speed;
+//       this.index = 0;
+  
+//       // For jumping
+//       this.velocity = -14 ;
+//       this.gravity = 0.7;
+//       this.lift = -40;  // This will decide the strength of the jump
+//       this.jumping = false;  // To know if horse is in air
+//     }
+  
+//     show() {
+//       let index = floor(this.index) % this.len;
+//       image(this.animation[index], this.x, this.y);
+//     }
+  
+//     animate() {
+//       this.index += this.speed;
+//       this.x += this.speed * 15;
+      
+//       if (this.x > width) {
+//         this.x = -this.animation[0].width;
+//       }
+  
+//       // Apply gravity
+//       if (this.jumping) {
+//         this.velocity += this.gravity;
+//         this.y += this.velocity;
+  
+//         // Stop the horse when it reaches the ground
+//         if (this.y > this.yBase) {
+//           this.y = this.yBase;
+//           this.jumping = false;
+//           this.velocity = 0;  // Reset velocity
+//         }
+//       }
+//     }
+  
+//     jump() {
+//       if (!this.jumping) {  // Prevent double jump when already in air
+//         this.velocity += this.lift;
+//         this.jumping = true;
+//       }
+//     }
+//   }
+  
+//   function keyPressed() {
+//     if (key == ' ' || keyCode == UP_ARROW) {  // Jump when spacebar or up arrow is pressed
+//       for (let horse of horses) {  // If you have multiple horses and want all of them to jump
+//         horse.jump();
+//       }
+//     }
+//     return false;  // prevent any default behavior
+//   }
+  
+// }
 
 //v1
 // class Horse extends Sprite {
