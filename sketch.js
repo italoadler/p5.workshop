@@ -3,6 +3,7 @@ let spritedata;
 let ground = [];
 let runAnimation = [];
 let jumpAnimation = [];
+let platforms = [];
 let horse;
 let mountains;
 let hills;
@@ -19,8 +20,11 @@ let groundX = 0;
 let parallaxSpeedGround = 8;
 let speedFlowers = parallaxSpeedGround;
 let flowers = [];
+let wildFlowers = [];
 let flowerClosedImg;
 let flowerOpenImg;
+let wildFlowerImage1;
+let wildFlowerImage2;
 
 function preload() {
   mountains = loadImage("assets/background/scroll_bg_far.png");
@@ -44,11 +48,14 @@ function preload() {
 
   flowerClosedImg = loadImage("assets/tile/flowers/flower.png");
   flowerOpenImg = loadImage("assets/tile/flowers/flower-open.png");
+
+  wildFlowerImage1 = loadImage("assets/tile/flowers/flower-wild-00.png");
+  wildFlowerImage2 = loadImage("assets/tile/flowers/flower-wild-01.png");
 }
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
-  galop.loop();
+  //   galop.loop();
 
   let frames = spritedata.frames;
   for (let i = 0; i < frames.length; i++) {
@@ -62,6 +69,8 @@ function setup() {
   for (let i = 0; i < 10; i++) {
     flowers.push(new Flower(flowerClosedImg));
   }
+  wildFlowers.push(new WildFlower(300, height - 100, wildFlowerImage1));
+  wildFlowers.push(new WildFlower(500, height - 100, wildFlowerImage2));
 }
 
 function draw() {
@@ -103,6 +112,10 @@ function draw() {
       flower.opened = true;
     }
   }
+  for(let flower of wildFlowers) { 
+    flower.display();
+    flower.move();
+  }  
 }
 
 function keyPressed() {
@@ -128,7 +141,7 @@ class Horse {
     this.index = 0;
     this.x = x;
     this.y = y;
-    this.gravity = 0.5;
+    this.gravity = 0.4;
     this.lift = -15;
     this.velocity = 0;
     this.jumping = false;
@@ -184,6 +197,16 @@ class Horse {
       this.y > flower.y + flowerHeight
     );
   }
+
+  transformToIceHorse() {
+    this.img = loadImage("assets/sprite/horse-ice/ice-horse.png"); // ou outro frame que você desejar
+    this.lives -= 1;
+    setTimeout(() => this.transformBack(), 5000); // Transforma de volta depois de 5 segundos, ajuste conforme necessário
+  }
+
+  transformBack() {
+    this.img = loadImage("assets/sprite/horse/horse.png"); // ou seu frame padrão
+  }
 }
 
 class Flower {
@@ -211,3 +234,43 @@ class Flower {
     }
   }
 }
+
+class WildFlower {
+  constructor(x, y, img) {
+      this.x = x;
+      this.y = y;
+      this.img = img;
+      this.width = this.img.width;
+      this.height = this.img.height;
+
+      // Defina uma velocidade para a flor se mover da direita para a esquerda
+      this.speed = 2;  // ajuste conforme necessário
+  }
+
+  // Método para desenhar a WildFlower na tela
+  display() {
+      image(this.img, this.x, this.y);
+  }
+
+  // Método para atualizar a posição da WildFlower
+  move() {
+      this.x -= this.speed;
+
+      // Se a flor estiver fora da tela à esquerda, podemos remover ou reciclar
+      if (this.x + this.width < 0) {
+          this.reset();
+      }
+  }
+
+  // Método para redefinir a posição da flor para o lado direito da tela
+  // Isso pode ser usado para "reciclar" a flor, criando uma sensação de loop
+  reset() {
+      this.x = width;
+  }
+
+  // Método que pode ser usado para alterar a velocidade (para efeitos de parallax)
+  setSpeed(newSpeed) {
+      this.speed = newSpeed;
+  }
+}
+
