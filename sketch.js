@@ -3,6 +3,7 @@ let spritedata;
 let ground = [];
 let runAnimation = [];
 let jumpAnimation = [];
+let platforms = [];
 let horse;
 let mountains;
 let hills;
@@ -19,8 +20,11 @@ let groundX = 0;
 let parallaxSpeedGround = 8;
 let speedFlowers = parallaxSpeedGround;
 let flowers = [];
+let wildFlowers = [];
 let flowerClosedImg;
 let flowerOpenImg;
+let wildFlowerImage1;
+let wildFlowerImage2;
 
 function preload() {
   mountains = loadImage("assets/background/scroll_bg_far.png");
@@ -36,7 +40,6 @@ function preload() {
   spritedata = loadJSON("horse.json");
   spritesheet = loadImage("horse.png");
 
-
   // Preload the jump animations for the horse
   for (let i = 0; i < 7; i++) {
     let filename = `assets/sprite/horse/horse-jump-0${i}.png`;
@@ -45,11 +48,14 @@ function preload() {
 
   flowerClosedImg = loadImage("assets/tile/flowers/flower.png");
   flowerOpenImg = loadImage("assets/tile/flowers/flower-open.png");
+
+  wildFlowerImage1 = loadImage("assets/tile/flowers/flower-wild-00.png");
+  wildFlowerImage2 = loadImage("assets/tile/flowers/flower-wild-01.png");
 }
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
-  galop.loop();
+  //   galop.loop();
 
   let frames = spritedata.frames;
   for (let i = 0; i < frames.length; i++) {
@@ -58,11 +64,13 @@ function setup() {
     runAnimation.push(img);
   }
 
-  horse = new Horse(runAnimation, jumpAnimation, 0, 0, 0.3);
+  horse = new Horse(runAnimation, jumpAnimation, 200, height - 200, 0.3);
 
   for (let i = 0; i < 10; i++) {
     flowers.push(new Flower(flowerClosedImg));
   }
+  wildFlowers.push(new WildFlower(300, height - 100, wildFlowerImage1));
+  wildFlowers.push(new WildFlower(500, height - 100, wildFlowerImage2));
 }
 
 function draw() {
@@ -104,6 +112,10 @@ function draw() {
       flower.opened = true;
     }
   }
+  for(let flower of wildFlowers) { 
+    flower.display();
+    flower.move();
+  }  
 }
 
 function keyPressed() {
@@ -121,66 +133,81 @@ function mousePressed() {
 }
 
 class Horse {
-    constructor(runAnimation, jumpAnimation, x, y, speed) {
-      this.runAnimation = runAnimation;
-      this.jumpAnimation = jumpAnimation;
-      this.speed = speed;
-      this.index = 0;
-      this.x = x;
-      this.y = y;
-      this.gravity = 0.5;
-      this.lift = -15;
-      this.velocity = 0;
-      this.jumping = false; // Added to check if horse is currently jumping
-    }
-  
-    show() {
-      let index = floor(this.index) % this.runAnimation.length;
-      if(this.jumping) {
-        index = floor(this.index) % this.jumpAnimation.length;
-        image(this.jumpAnimation[index], this.x, this.y);
+  constructor(runAnimation, jumpAnimation, x, y, speed) {
+    this.runAnimation = runAnimation;
+    this.jumpAnimation = jumpAnimation;
+    this.speed = speed;
+    this.jumpSpeed = this.speed / 3; // Reduzindo a velocidade da animação de pulo
+    this.index = 0;
+    this.x = x;
+    this.y = y;
+    this.gravity = 0.4;
+    this.lift = -15;
+    this.velocity = 0;
+    this.jumping = false;
+  }
+
+  show() {
+    // Determinando qual animação exibir
+    let currentAnimation = this.jumping
+      ? this.jumpAnimation
+      : this.runAnimation;
+    let index = floor(this.index) % currentAnimation.length;
+    let currentFrame = currentAnimation[index];
+
+    image(currentFrame, this.x, this.y);
+  }
+
+  animate() {
+    if (this.jumping) {
+      this.index += this.jumpSpeed; // Usando a velocidade de pulo se o cavalo estiver pulando
     } else {
-        console.log("Current index:", index);
-        console.log("Current image:", this.runAnimation[index])
-        image(this.runAnimation[index], this.x, this.y);
-      }
-    }
-  
-    animate() {
       this.index += this.speed;
-      
-    }
-  
-    jump() {
-      if (this.y == height - 200) {
-        this.velocity += this.lift;
-        this.jumping = true; // Set jumping to true when the horse jumps
-      }
-    }
-  
-    applyGravity() {
-      this.velocity += this.gravity;
-      this.y += this.velocity;
-      if (this.y > height - 200) {
-        this.y = height - 200;
-        this.velocity = 0;
-        this.jumping = false; // Reset jumping to false when the horse lands
-      }
-    }
-  
-    collides(flower) {
-      let horseWidth = this.runAnimation[0].width; // Use runAnimation here since it will have the horse's dimensions.
-      let horseHeight = this.runAnimation[0].height;
-      let flowerWidth = flower.image.width;
-      let flowerHeight = flower.image.height;
-  
-      return !(this.x + horseWidth < flower.x ||
-               this.x > flower.x + flowerWidth ||
-               this.y + horseHeight < flower.y ||
-               this.y > flower.y + flowerHeight);
     }
   }
-  
+
+  jump() {
+    if (this.y == height - 200) {
+      this.velocity += this.lift;
+      this.jumping = true;
+      this.index = 0; // Resetamos o índice para o início da animação de pulo
+    }
+  }
+
+  applyGravity() {
+    this.velocity += this.gravity;
+    this.y += this.velocity;
+    if (this.y > height - 200) {
+      this.y = height - 200;
+      this.velocity = 0;
+      this.jumping = false;
+    }
+  }
+
+  collides(flower) {
+    let horseWidth = this.runAnimation[0].width;
+    let horseHeight = this.runAnimation[0].height;
+    let flowerWidth = flower.image.width;
+    let flowerHeight = flower.image.height;
+
+    return !(
+      this.x + horseWidth < flower.x ||
+      this.x > flower.x + flowerWidth ||
+      this.y + horseHeight < flower.y ||
+      this.y > flower.y + flowerHeight
+    );
+  }
+
+  transformToIceHorse() {
+    this.img = loadImage("assets/sprite/horse-ice/ice-horse.png"); // ou outro frame que você desejar
+    this.lives -= 1;
+    setTimeout(() => this.transformBack(), 5000); // Transforma de volta depois de 5 segundos, ajuste conforme necessário
+  }
+
+  transformBack() {
+    this.img = loadImage("assets/sprite/horse/horse.png"); // ou seu frame padrão
+  }
+}
 
 class Flower {
   constructor(img) {
@@ -207,3 +234,43 @@ class Flower {
     }
   }
 }
+
+class WildFlower {
+  constructor(x, y, img) {
+      this.x = x;
+      this.y = y;
+      this.img = img;
+      this.width = this.img.width;
+      this.height = this.img.height;
+
+      // Defina uma velocidade para a flor se mover da direita para a esquerda
+      this.speed = 2;  // ajuste conforme necessário
+  }
+
+  // Método para desenhar a WildFlower na tela
+  display() {
+      image(this.img, this.x, this.y);
+  }
+
+  // Método para atualizar a posição da WildFlower
+  move() {
+      this.x -= this.speed;
+
+      // Se a flor estiver fora da tela à esquerda, podemos remover ou reciclar
+      if (this.x + this.width < 0) {
+          this.reset();
+      }
+  }
+
+  // Método para redefinir a posição da flor para o lado direito da tela
+  // Isso pode ser usado para "reciclar" a flor, criando uma sensação de loop
+  reset() {
+      this.x = width;
+  }
+
+  // Método que pode ser usado para alterar a velocidade (para efeitos de parallax)
+  setSpeed(newSpeed) {
+      this.speed = newSpeed;
+  }
+}
+
