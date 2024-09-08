@@ -60,7 +60,7 @@ Once your pull request is approved and passes all tests, it will be merged into 
 
 Thank you for contributing to the 2D Game Remix project!
 
-```
+
 
 ### Sprint Goals and Deliverables
 
